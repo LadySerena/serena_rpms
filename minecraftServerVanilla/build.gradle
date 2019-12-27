@@ -10,3 +10,35 @@ task downloadMinecraftJars(type: Download){
     dest buildDir
     overwrite false
 }
+
+task buildMinecraft(type: Rpm) {
+    dependsOn downloadMinecraftJars
+    packageName 'minecraft'
+    version '1.15.1'
+    release '1'
+    arch 'NOARCH'
+    os 'Linux'
+    requires('java-11-openjdk-headless')
+    preInstall file('scripts/preInstall.sh')
+    postInstall file('scripts/postInstall.sh')
+    from('opt/minecraft') {
+        into '/opt/minecraft'
+        user 'minecraft'
+        permissionGroup 'minecraft'
+        fileMode 0644
+
+    }
+    from(buildDir) {
+        into '/opt/minecraft'
+        include 'server.jar'
+        user 'minecraft'
+        permissionGroup 'minecraft'
+        fileMode 0644
+    }
+    from('etc/systemd') {
+        into '/etc/systemd/system'
+        user'root'
+        permissionGroup 'root'
+        fileMode 0644
+    }
+}
